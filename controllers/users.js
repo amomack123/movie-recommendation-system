@@ -1,60 +1,49 @@
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcrypt');
-const User = require('../models/user'); // Adjust the path if necessary
+const User = require('../models/user');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 
-const SALT_LENGTH = 12;
+const SALT_LENGTH = 10;
 
-// @desc    Register a new user (Signup)
-// @route   POST /api/users/signup
-// @access  Public
 router.post('/signup', async (req, res) => {
     try {
-        // Check if the username is already taken
-        const userInDatabase = await User.findOne({ username: req.body.username });
-        if (userInDatabase) {
-            return res.status(400).json({ error: 'Username already taken.' });
-        }
-
-        // Check if the email is already taken
-        const emailInDatabase = await User.findOne({ email: req.body.email });
-        if (emailInDatabase) {
-            return res.status(400).json({ error: 'Email already taken.' });
+        const {username, password } = req.body;
+        
+        // Check if user already exists
+        const existingUser = await User.findOne({ $or: [{ username }] });
+        if (existingUser) {
+            return res.status(400).json({ error: 'Username already exists' });
         }
 
         // Create a new user with hashed password
         const user = await User.create({
-            firstname: req.body.firstname,
-            lastname: req.body.lastname,
-            username: req.body.username,
-            email: req.body.email,
-            hashedPassword: bcrypt.hashSync(req.body.password, SALT_LENGTH)
+            username,
+            hashedPassword: bcrypt.hashSync(password, SALT_LENGTH)
         });
 
-        // Create a token for the new user
-        const token = jwt.sign({ username: user.username, _id: user._id }, process.env.JWT_SECRET);
-        res.status(201).json({ user, token });
+        // Generate JWT token
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+        res.status(201).json({ token, user: { id: user._id, username: user.username } });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        console.log(error);
+        res.status(500).json({ error: 'An error occurred during signup' });
     }
 });
 
-// @desc    Authenticate user & get token (Signin)
-// @route   POST /api/users/signin
-// @access  Public
 router.post('/signin', async (req, res) => {
     try {
-        const user = await User.findOne({ username: req.body.username });
-        if (user && bcrypt.compareSync(req.body.password, user.hashedPassword)) {
-            // Create a token for the signed-in user
-            const token = jwt.sign({ username: user.username, _id: user._id }, process.env.JWT_SECRET);
-            res.status(200).json({ token });
-        } else {
-            res.status(401).json({ error: 'Invalid username or password.' });
+        const { username, password } = req.body;
+        const user = await User.findOne({ username });
+        
+        if (!user || !bcrypt.compareSync(password, user.hashedPassword)) {
+            return res.status(401).json({ error: 'Invalid username or password' });
         }
+
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+        res.json({ token, user: { id: user._id, username: user.username} });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        res.status(500).json({ error: 'An error occurred during signin' });
     }
 });
 
