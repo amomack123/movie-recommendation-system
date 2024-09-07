@@ -1,72 +1,3 @@
-// const express = require('express');
-// const router = express.Router({ mergeParams: true }); // Merge params to handle nested routes
-// const Movie = require('../models/movie');
-// const Review = require('../models/review');
-// const verifyToken = require('../middleware/verify-token');
-
-// // ========== Public Routes ===========
-
-// // Get all reviews for a movie
-// router.get('/', async (req, res) => {
-//     try {
-//         const reviews = await Review.find({ movie: req.params.movieId }).populate('user');
-//         res.status(200).json(reviews);
-//     } catch (error) {
-//         res.status(500).json({ error: error.message });
-//     }
-// });
-
-// // ========= Protected Routes =========
-// router.use(verifyToken);
-
-// // Add a new review
-// router.post('/', async (req, res) => {
-//     try {
-//         req.body.user = req.user._id;
-//         req.body.movie = req.params.movieId;
-//         const newReview = await Review.create(req.body);
-//         res.status(201).json(newReview);
-//     } catch (error) {
-//         res.status(500).json({ error: error.message });
-//     }
-// });
-
-// // Update a review
-// router.put('/:reviewId', async (req, res) => {
-//     try {
-//         const review = await Review.findById(req.params.reviewId);
-//         if (!review || !review.user.equals(req.user._id)) {
-//             return res.status(403).json({ error: 'You are not allowed to update this review.' });
-//         }
-//         const updatedReview = await Review.findByIdAndUpdate(req.params.reviewId, req.body, { new: true });
-//         res.status(200).json(updatedReview);
-//     } catch (error) {
-//         res.status(500).json({ error: error.message });
-//     }
-// });
-
-// // Delete a review
-// router.delete('/:reviewId', async (req, res) => {
-//     try {
-//         const review = await Review.findById(req.params.reviewId);
-//         if (!review || !review.user.equals(req.user._id)) {
-//             return res.status(403).json({ error: 'You are not allowed to delete this review.' });
-//         }
-//         await Review.findByIdAndDelete(req.params.reviewId);
-//         res.status(200).json({ message: 'Review deleted.' });
-//     } catch (error) {
-//         res.status(500).json({ error: error.message });
-//     }
-// });
-
-// module.exports = router;
-
-
-
-
-
-
-
 const express = require('express');
 const router = express.Router();
 const Review = require('../models/review');
@@ -78,6 +9,7 @@ const verifyToken = require('../middleware/verify-token');
 router.post('/', verifyToken, async (req, res) => {
     try {
         const { movieId, comment, rating } = req.body;
+        console.log(movieId, comment, rating);
         const review = new Review({
             user: req.user.userId,
             movie: movieId,

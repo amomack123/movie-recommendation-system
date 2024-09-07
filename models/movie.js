@@ -3,11 +3,11 @@ const mongoose = require('mongoose');
 const movieSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String, required: true },
-  genre: {
+  genre: [{
     type: String,
     required: true,
-    enum: ['Adventure', 'Drama', 'Comedy', 'Science fiction', 'Fantasy', 'Horror', 'Thriller', 'Western', 'Musical']
-  },
+    enum: ['Adventure', 'Drama', 'Comedy', 'Science fiction', 'Fantasy', 'Horror', 'Thriller', 'Western', 'Musical', 'Action']
+  }],
   actors: [{ type: String }],
   reviews: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Review' }],
   averageRating: { type: Number, default: 0 }
